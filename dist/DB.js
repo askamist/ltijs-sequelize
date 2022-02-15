@@ -8,9 +8,13 @@ var _classPrivateFieldSet2 = _interopRequireDefault(require("@babel/runtime/help
 
 var _classPrivateFieldGet2 = _interopRequireDefault(require("@babel/runtime/helpers/classPrivateFieldGet"));
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
 
 const provDatabaseDebug = require('debug')('provider:database');
 
@@ -54,32 +58,32 @@ class Database {
    * @param {Object} options - Sequelize options
    */
   constructor(database, user, pass, options) {
-    _sequelize.set(this, {
+    _classPrivateFieldInitSpec(this, _sequelize, {
       writable: true,
       value: void 0
     });
 
-    _Models.set(this, {
+    _classPrivateFieldInitSpec(this, _Models, {
       writable: true,
       value: void 0
     });
 
-    _deploy.set(this, {
+    _classPrivateFieldInitSpec(this, _deploy, {
       writable: true,
       value: false
     });
 
-    _dialect.set(this, {
+    _classPrivateFieldInitSpec(this, _dialect, {
       writable: true,
       value: void 0
     });
 
-    _cronJob.set(this, {
+    _classPrivateFieldInitSpec(this, _cronJob, {
       writable: true,
       value: void 0
     });
 
-    _ExpireTime.set(this, {
+    _classPrivateFieldInitSpec(this, _ExpireTime, {
       writable: true,
       value: {
         idtoken: 3600 * 24 * 1000,
@@ -90,7 +94,7 @@ class Database {
       }
     });
 
-    _databaseCleanup.set(this, {
+    _classPrivateFieldInitSpec(this, _databaseCleanup, {
       writable: true,
       value: async () => {
         provDatabaseDebug('Cleaning up expired records ...');
@@ -138,8 +142,8 @@ class Database {
       }
     });
 
-    (0, _classPrivateFieldSet2.default)(this, _sequelize, new Sequelize(database, user, pass, options));
-    (0, _classPrivateFieldSet2.default)(this, _dialect, options.dialect);
+    (0, _classPrivateFieldSet2.default)(this, _sequelize, pass !== undefined ? new Sequelize(database, user, pass, options) : new Sequelize(database, user));
+    (0, _classPrivateFieldSet2.default)(this, _dialect, (0, _classPrivateFieldGet2.default)(this, _sequelize).getDialect());
     (0, _classPrivateFieldSet2.default)(this, _Models, {
       idtoken: (0, _classPrivateFieldGet2.default)(this, _sequelize).define('idtoken', {
         iss: {
@@ -490,11 +494,11 @@ class Database {
     return true;
   }
   /**
-     * @description Get item or entire database.
-     * @param {String} ENCRYPTIONKEY - Encryptionkey of the database, false if none
-     * @param {String} table - The name of the table from where to query
-     * @param {Object} [info] - Info for the item being searched for in the format {col1: "value1"}.
-     */
+   * @description Get item or entire database.
+   * @param {String} ENCRYPTIONKEY - Encryptionkey of the database, false if none
+   * @param {String} table - The name of the table from where to query
+   * @param {Object} [info] - Info for the item being searched for in the format {col1: "value1"}.
+   */
 
 
   async Get(ENCRYPTIONKEY, table, info) {
@@ -536,17 +540,21 @@ class Database {
     return result;
   }
   /**
-     * @description Insert item in database.
-     * @param {String} ENCRYPTIONKEY - Encryptionkey of the database, false if none.
-     * @param {String} table - The name of the table from where to query
-     * @param {Object} item - The item Object you want to insert in the database.
-     * @param {Object} [index] - Key that should be used as index in case of Encrypted document.
-     */
+   * @description Insert item in database.
+   * @param {String} ENCRYPTIONKEY - Encryptionkey of the database, false if none.
+   * @param {String} table - The name of the table from where to query
+   * @param {Object} item - The item Object you want to insert in the database.
+   * @param {Object} [index] - Key that should be used as index in case of Encrypted document.
+   */
 
 
   async Insert(ENCRYPTIONKEY, table, item, index) {
     if (!(0, _classPrivateFieldGet2.default)(this, _deploy)) throw new Error('PROVIDER_NOT_DEPLOYED');
-    if (!table || !item || ENCRYPTIONKEY && !index) throw new Error('MISSING_PARAMS'); // Encrypt if encryption key is present
+
+    if (!table || !item || ENCRYPTIONKEY && !index) {
+      throw new Error('MISSING_PARAMS');
+    } // Encrypt if encryption key is present
+
 
     let newDocData = item;
 
@@ -573,7 +581,11 @@ class Database {
 
   async Replace(ENCRYPTIONKEY, table, info, item, index) {
     if (!(0, _classPrivateFieldGet2.default)(this, _deploy)) throw new Error('PROVIDER_NOT_DEPLOYED');
-    if (!table || !item || ENCRYPTIONKEY && !index) throw new Error('MISSING_PARAMS');
+
+    if (!table || !item || ENCRYPTIONKEY && !index) {
+      throw new Error('MISSING_PARAMS');
+    }
+
     await this.Delete(table, info); // Encrypt if encryption key is present
 
     let newDocData = item;
@@ -590,12 +602,12 @@ class Database {
     return true;
   }
   /**
-     * @description Assign value to item in database
-     * @param {String} ENCRYPTIONKEY - Encryptionkey of the database, false if none.
-     * @param {String} table - The name of the table from where to query
-     * @param {Object} info - Info for the item being modified in the format {col1: "value1"}.
-     * @param {Object} modification - The modification you want to make in the format {col1: "value2"}.
-     */
+   * @description Assign value to item in database
+   * @param {String} ENCRYPTIONKEY - Encryptionkey of the database, false if none.
+   * @param {String} table - The name of the table from where to query
+   * @param {Object} info - Info for the item being modified in the format {col1: "value1"}.
+   * @param {Object} modification - The modification you want to make in the format {col1: "value2"}.
+   */
 
 
   async Modify(ENCRYPTIONKEY, table, info, modification) {
@@ -624,10 +636,10 @@ class Database {
     return true;
   }
   /**
-     * @description Delete item in database
-     * @param {String} table - The name of the table from where to query
-     * @param {Object} [info] - Info for the item being deleted in the format {col1: "value1"}.
-     */
+   * @description Delete item in database
+   * @param {String} table - The name of the table from where to query
+   * @param {Object} [info] - Info for the item being deleted in the format {col1: "value1"}.
+   */
 
 
   async Delete(table, info) {
